@@ -193,43 +193,48 @@ int partitionThreeWay(int arr[], int left, int right, int* lt, int* gt)
 in Java example
 
 ``` java
-public static void dualPivotQuickSort(int[] arr, int left, int right) {
-    if (left < right) {
-        if (arr[left] > arr[right]) {
-            swap(arr, left, right);
+public static void dualPivotQuickSort(int[] arr, int low, int high) {
+    if (low < high) {
+        if (arr[low] > arr[high]) {
+            swap(arr, low, high);
         }
 
-	// 2개의 피봇 설정!!
-        int p = arr[left];
-        int q = arr[right];
-	
-	// p와 q 중간을 이동하는 인덱스 (like three-way quicksort)
-        int i = left + 1; 
+        int pivot1 = arr[low];
+        int pivot2 = arr[high];
+
+        int i = low + 1;
+        int j = high - 1;
         int k = i;
-        int j = right - 1;
-        while (i <= j) {
-            if (arr[i] < p) {
-                swap(arr, i++, k++);
-            } else if (arr[i] >= q) {
-                while (arr[j] > q && i < j) {
+
+        while (k <= j) {
+            if (arr[k] < pivot1) {
+                swap(arr, k, i);
+                i++;
+            } else if (arr[k] >= pivot2) {
+                while (arr[j] > pivot2 && k < j) {
                     j--;
                 }
-                swap(arr, i, j--);
-                if (arr[i] < p) {
-                    swap(arr, i++, k++);
+
+                swap(arr, k, j);
+                j--;
+
+                if (arr[k] < pivot1) {
+                    swap(arr, k, i);
+                    i++;
                 }
             }
-            else {
-                i++;
-            }
+            k++;
         }
-        k--;
+
+        i--;
         j++;
-        swap(arr, left, k);
-        swap(arr, right, j);
-        dualPivotQuickSort(arr, left, k - 1);
-        dualPivotQuickSort(arr, k + 1, j - 1);
-        dualPivotQuickSort(arr, j + 1, right);
+
+        swap(arr, low, i);
+        swap(arr, high, j);
+
+        dualPivotQuickSort(arr, low, i - 1);
+        dualPivotQuickSort(arr, i + 1, j - 1);
+        dualPivotQuickSort(arr, j + 1, high);
     }
 }
 

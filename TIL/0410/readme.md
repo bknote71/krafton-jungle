@@ -247,7 +247,7 @@ stringstream ss(str);
 ss >> num;
 ```
 
-## 정수 to 문자열 in C
+## 정수 to 문자열 in C/C++
 1. sprintf()
 ``` c
 int num = 12345;

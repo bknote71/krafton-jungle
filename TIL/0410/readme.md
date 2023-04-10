@@ -32,7 +32,7 @@ void prime(int n)
 - i 보다 작은 수 k의 배수는 이미 처리되었다. 
 - i * k 는 이미 처리되어있다.
 
-1. j += i
+2. j += i
 - j 의 시작은 i 이며, i 를 계속 더하면 j 는 항상 i 의 배수이다!
 
 최적화된 알고리즘
@@ -272,9 +272,10 @@ sprintf(str, "%o", num);
 2. std::tostring(num)
 - 정수나 부동 소수점 값을 문자열로 변환할 수 있습니다.
 ``` cpp
+// 정수 to 문자열
 int num = 12345;
 std::string str = std::to_string(num);
-
+// 부동 소수점 to 문자열
 double num = 3.141592;
 std::string str = std::to_string(num);
 ```

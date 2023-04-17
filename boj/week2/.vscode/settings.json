@@ -3,6 +3,12 @@
     "vector": "cpp",
     "set": "cpp",
     "ostream": "cpp",
-    "cmath": "cpp"
+    "cmath": "cpp",
+    "iosfwd": "cpp",
+    "string": "cpp",
+    "iostream": "cpp",
+    "stack": "cpp",
+    "queue": "cpp",
+    "ios": "cpp"
   }
 }

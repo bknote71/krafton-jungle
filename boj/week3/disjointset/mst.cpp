@@ -19,7 +19,7 @@ bool merge(int a, int b)
     if (a == b)
         return false;
 
-    // a 가 많이 담고있다.
+    // a 가 많이 담고있다. --> b를 a 쪽으로
     if (parent[a] < parent[b])
         parent[a] += parent[b], parent[b] = a;
 

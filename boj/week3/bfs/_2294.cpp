@@ -17,7 +17,7 @@ int main()
     queue<pair<int, int>> q;
     q.push({ 0, 0 });
     vst[0][0] = true;
-    int ret = 0;
+    int ret = -1;
     while (!q.empty())
     {
         pair<int, int> p = q.front();

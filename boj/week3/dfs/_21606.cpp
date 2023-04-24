@@ -58,7 +58,6 @@ int main()
         {
             if (!vst[i + 1])
             {
-                // 검은점의 개수 구하기 (나제외 ^^)
                 long long cand = dfs(i + 1);
                 ret += cand * (cand - 1);
             }

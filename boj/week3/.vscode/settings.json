@@ -18,6 +18,9 @@
     "tuple": "cpp",
     "type_traits": "cpp",
     "chrono": "cpp",
-    "cstddef": "cpp"
+    "cstddef": "cpp",
+    "map": "cpp",
+    "ios": "cpp",
+    "stack": "cpp"
   }
 }

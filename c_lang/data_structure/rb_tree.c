@@ -182,7 +182,7 @@ void erase_fixup(rbtree *t, node *x)
                     rightRotation(t, w);
                     w = x->parent->right;
                 }
-                w->color = w->parent->color;
+                w->color = x->parent->color;
                 w->parent->color = black;
                 w->right->color = black;
                 leftRotation(t, x->parent);
@@ -212,7 +212,7 @@ void erase_fixup(rbtree *t, node *x)
                     leftRotation(t, w);
                     w = x->parent->left;
                 }
-                w->color = w->parent->color;
+                w->color = x->parent->color;
                 w->parent->color = black;
                 w->left->color = black;
                 rightRotation(t, x->parent);

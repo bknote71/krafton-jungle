@@ -270,7 +270,8 @@ void erase(rbtree *t, int key)
         y_org_color = y->color;
         x = y->right;
         if (y->parent == z)
-            x->parent = y;
+            ;
+        // x->parent = y;
         else
         {
             transplant(t, y, y->right);
@@ -318,6 +319,9 @@ int main()
     print_tree(&t, t.root);
 
     erase(&t, 4);
+    erase(&t, 9);
+    erase(&t, 1);
+    erase(&t, 6);
 
     printf("print tree\n");
     print_tree(&t, t.root);

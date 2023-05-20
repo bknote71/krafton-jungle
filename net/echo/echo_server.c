@@ -7,31 +7,19 @@
 #include <sys/types.h>
 #include <unistd.h> // read(), write(), close()
 
-#define MAX 80
+#define BUFSUZE 1024
 #define PORT 8080
 
 // Function designed for chat between client and server.
 void func(int connfd)
 {
-    char buff[MAX];
-    int n, readn, writen;
-    // infinite loop for chat
-    for (;;)
+    char buf[BUFSUZE];
+    int n;
+    while ((n = read(connfd, buf, sizeof(buf))) != 0)
     {
-        // memset(buff, 0, sizeof(buff));
-        bzero(buff, MAX);
-
-        // read the message from client and copy it in buffer
-        readn = read(connfd, buff, sizeof(buff));
-        writen = write(connfd, buff, sizeof(buff));
-
-        // if msg contains "Exit" then server exit and chat ended.
-        if (strncmp("exit", buff, 4) == 0)
-        {
-            printf("Server Exit...\n");
-            break;
-        }
+        write(connfd, buf, n);
     }
+    close(connfd);
 }
 
 // Driver function
@@ -49,11 +37,11 @@ int main()
     }
     else
         printf("Socket successfully created..\n");
-    bzero(&servaddr, sizeof(servaddr));
+    memset(&servaddr, 0, sizeof(servaddr));
 
     // assign IP, PORT
     servaddr.sin_family = AF_INET;
-    servaddr.sin_addr.s_addr = INADDR_ANY;
+    servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
     servaddr.sin_port = htons(PORT);
 
     // Binding newly created socket to given IP and verification

@@ -13,27 +13,26 @@
 void func(int sockfd)
 {
     char buff[MAX];
-    char recv[MAX];
-    int n;
+    int n, readn;
     for (;;)
     {
-        bzero(buff, sizeof(buff));
-        bzero(recv, sizeof(recv));
+        n = 0, readn = 0;
+        memset(buff, 0, sizeof(buff));
 
-        printf("Enter the string : ");
-        n = 0;
+        printf("Input message: ");
         while ((buff[n++] = getchar()) != '\n')
             ;
-        write(sockfd, buff, sizeof(buff));
 
-        read(sockfd, recv, sizeof(recv));
-        printf("From Echo Server : %s\n", recv);
-
-        if ((strncmp(buff, "exit", 4)) == 0)
+        if (!strcmp(buff, "exit"))
         {
-            printf("Client Exit...\n");
+            printf("exit connection\n");
             break;
         }
+        write(sockfd, buff, sizeof(buff));
+
+        readn = read(sockfd, buff, sizeof(buff));
+        buff[readn] = 0;
+        printf("From Echo Server : %s\n", buff);
     }
 }
 int main()
@@ -51,7 +50,7 @@ int main()
     else
         printf("Socket successfully created..\n");
 
-    bzero(&servaddr, sizeof(servaddr));
+    memset(&servaddr, 0, sizeof(servaddr));
 
     // assign IP, PORT
     servaddr.sin_family = AF_INET;

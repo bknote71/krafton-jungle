@@ -1,3 +1,4 @@
+#include <arpa/inet.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <stdio.h>
@@ -7,10 +8,10 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define BUFSIZE 1024
+#define BUFSIZE 30000
 #define RESPONSESIZE 30000
 #define BODYSIZE 20000
-#define PORT 80
+#define PORT 8090
 
 typedef struct httpheader
 {
@@ -20,12 +21,13 @@ typedef struct httpheader
 
 typedef struct httprequest
 {
-    char *method;
+    // char *method;
     char *uri;
-    char *version;
-    struct httpheader headers[20];
-    int header_size;
-    char *body;
+    // char *version;
+    // struct httpheader headers[20];
+    // int header_size;
+    // char *body;
+    char *hostname;
 } httprequest;
 
 void error(const char *msg)
@@ -37,7 +39,7 @@ void error(const char *msg)
 httprequest *create_request()
 {
     httprequest *req = (httprequest *)malloc(sizeof(struct httprequest));
-    req->header_size = 0;
+    // req->header_size = 0;
     return req;
 }
 
@@ -54,9 +56,9 @@ httprequest *parse_request(const char *http)
     char *hname, *hvalue;
     line = strtok_r(http, newline, &saveptr);
 
-    request->method = strtok_r(line, " ", &start);
+    strtok_r(line, " ", &start);
     request->uri = strtok_r(NULL, " ", &start);
-    request->version = strtok_r(NULL, " ", &start);
+    // request->version = strtok_r(NULL, " ", &start);
 
     // header
     int idx = 0;
@@ -64,13 +66,11 @@ httprequest *parse_request(const char *http)
     {
         line = strtok_r(NULL, newline, &saveptr);
         hname = strtok_r(line, ":", &hvalue);
-        request->headers[idx].name = hname;
-        request->headers[idx++].value = hvalue;
+        if (strcmp(hname, "Host") == 0)
+            request->hostname = ++hvalue;
         if (line != NULL && strncmp(saveptr, blankline, strlen(blankline)) == 0)
             break;
     }
-    request->header_size = idx;
-    request->body = saveptr + 3;
 
     return request;
 }
@@ -97,6 +97,8 @@ int main()
 
     int n;
     char buf[BUFSIZE];
+    char org[BUFSIZE];
+    char res[BUFSIZE];
     char response[RESPONSESIZE];
     char body[BODYSIZE];
     for (;;)
@@ -104,46 +106,89 @@ int main()
         memset(buf, 0, sizeof(buf));
         memset(response, 0, sizeof(response));
         memset(body, 0, sizeof(body));
+        memset(org, 0, sizeof(org));
+        memset(res, 0, sizeof(res));
 
         clilen = sizeof(cli);
         connfd = accept(sockfd, (struct sockaddr *)&cli, &clilen);
+        printf("connfd: %d\n", connfd);
         n = read(connfd, buf, sizeof(buf));
+        printf("readn: %d, buf: \n%s\n", n, buf);
+        strcpy(org, buf);
         // parse
         httprequest *request = parse_request(buf);
 
+        // 원래 서버에게 요청
+        struct addrinfo hints, *res;
+        memset(&hints, 0, sizeof(hints));
+        hints.ai_family = AF_INET;
+        hints.ai_socktype = SOCK_STREAM;
+
+        printf("hostname: %s\n\n", request->hostname);
+
+        if (getaddrinfo(request->hostname, NULL, &hints, &res) != 0)
+        {
+            perror("Failed to resolve hostname");
+            exit(1);
+        }
+
+        struct sockaddr_in *server_addr = (struct sockaddr_in *)res->ai_addr;
+        char *ip_address = inet_ntoa(server_addr->sin_addr);
+
+        int proxyfd = socket(AF_INET, SOCK_STREAM, 0), readn;
+        struct sockaddr_in upserver;
+        memset(&upserver, 0, sizeof(upserver));
+        upserver.sin_family = AF_INET;
+        upserver.sin_port = htons(80);
+        upserver.sin_addr.s_addr = inet_addr(ip_address);
+
+        if (connect(proxyfd, (struct sockaddr *)&upserver, sizeof(upserver)) != 0)
+        {
+            printf("connection with the upserver failed...\n");
+        }
+        else
+            printf("connected to the upserver..\n");
+
+        // make http request
+        write(proxyfd, org, sizeof(org));
+        read(proxyfd, org, sizeof(org));
+        // org[readn] = 0;
+        printf("in upserver's response: \n%s\n", org);
+
+        // response
         char statusline[100];
         char contenttype[100];
 
         // basic response header
-        sprintf(statusline, "%s %d %s\r\n", request->version, 200, "OK");
+        sprintf(statusline, "%s %d %s\r\n", "HTTP/1.1", 200, "OK");
         strcat(response, statusline);
-        // sprintf(contenttype, "Content-Length:  %d\r\n", sizeof(body) - 1);
-        // strcat(response, contenttype);
+        sprintf(contenttype, "Content-Length: %d\r\n", 12);
+        strcat(response, contenttype);
         strcat(response, "Date: Sat, 20 May 2023 09:50:53 GMT\r\n");
         strcat(response, "Content-Type: text/html; charset=UTF-8\r\n");
         strcat(response, "Connection: close\r\n");
 
         strcat(response, newline);
-        // html file io
-        // FILE
-        char path[100] = "./mypath";
-        strcat(path, request->uri);
-        FILE *fp = fopen(path, "r");
-        if (fp == NULL)
-        {
-            printf("파일을 열 수 없습니다. response 404 error\n");
-            continue;
-        }
+        strcat(response, "hello world!");
 
-        fread(body, 1, BODYSIZE, fp);
-        strcat(response, body);
+        // char path[100] = "./mypath";
+        // strcat(path, request->uri);
+        // FILE *fp = fopen(path, "r");
+        // if (fp == NULL)
+        // {
+        //     printf("파일을 열 수 없습니다. response 404 error\n");
+        // }
 
-        printf("response: %s\n", response);
+        // fread(body, 1, BODYSIZE, fp);
+        // strcat(response, body);
+
+        printf("response: \n%s\n", response);
         write(connfd, response, strlen(response));
 
         // close
+        freeaddrinfo(res);
         free(request);
-        fclose(fp);
+        // fclose(fp);
         close(connfd);
     }
     close(sockfd);
